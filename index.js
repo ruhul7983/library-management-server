@@ -21,18 +21,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rsqtl7q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
-});
-
-
 const logger = (req, res, next) => {
   console.log('called: ', req.host, req.originalUrl);
   next();
@@ -49,13 +37,43 @@ const verifyToken = (req, res, next) => {
       console.log(err);
       return res.status(401).send({ message: "Unauthorized" })
     }
+    console.log("decoded in verify ",decoded);
     req.user = decoded;
-    console.log("req.user: ", req.user);
-
     next();
 
   })
 }
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.rsqtl7q.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
+});
+
+
+// const verifyToken = (req, res, next) => {
+//   const token = req?.cookies?.token;
+//   console.log("Token in middle Layer: ", token);
+//   if (!token) {
+//     return res.status(401).send({ message: "Unauthorized" });
+//   }
+//   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+//     if (err) {
+//       console.log(err);
+//       return res.status(401).send({ message: "Unauthorized" })
+//     }
+//     req.user = decoded;
+//     next();
+
+//   })
+// }
+
+
 
 async function run() {
   try {
@@ -112,11 +130,13 @@ async function run() {
 
     app.get("/your-issues-book", logger, verifyToken, async (req, res) => {
       console.log("user in valid token", req.user);
-
-      if(req.query.email !== req.user?.email){
-        return res.status(403).send({message:"Forbidden Access"});
+      //console.log("email: ", req.query.email);
+      console.log('Query Email:', req.query.email);
+      console.log('User Email:', req.user?.email);
+      if (req.query.email !== req.user?.email) {
+        return res.status(403).send({ message: "Forbidden Access" });
       }
-      
+
       console.log("Cookies in issues ", req.cookies);
 
       let query = {};
