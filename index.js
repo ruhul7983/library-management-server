@@ -1,11 +1,10 @@
 const express = require("express");
 const app = express();
-const jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-
 const cors = require("cors");
-require('dotenv').config();
+const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+require('dotenv').config();
 const port = process.env.PORT || 5000;
 app.use(cors(
   {
@@ -37,7 +36,7 @@ const verifyToken = (req, res, next) => {
       console.log(err);
       return res.status(401).send({ message: "Unauthorized" })
     }
-    console.log("decoded in verify ",decoded);
+    console.log("User in decoded :" ,decoded);
     req.user = decoded;
     next();
 
@@ -86,21 +85,35 @@ async function run() {
 
 
     // jwt
-    app.post("/jwt", async (req, res) => {
+    // app.post("/jwt", async (req, res) => {
+    //   const user = req.body;
+    //   const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
+    //   res.cookie("token", token, {
+    //     httpOnly: true,
+    //     secure: false,
+    //   })
+    //     .send({ success: true })
+    // })
+
+
+    app.post('/jwt', async (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
-      res.cookie("token", token, {
-        httpOnly: true,
-        secure: false,
-      })
-        .send({ success: true })
+      console.log(user);
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+      res
+        .cookie('token', token, {
+          httpOnly: true,
+          secure: false,
+        })
+        .send({ success: true });
+
     })
 
-    app.post("/logout", async (req, res) => {
-      res
-        .clearCookie("token", { maxAge: 0 })
-        .send({ success: true })
-    })
+    // app.post("/logout", async (req, res) => {
+    //   res
+    //     .clearCookie("token", { maxAge: 0 })
+    //     .send({ success: true })
+    // })
 
 
     app.post("/categories", async (req, res) => {
